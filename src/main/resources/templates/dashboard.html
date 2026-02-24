@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>OnlineBank Dashboard</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f4f6f9;
+        }
+
+        .sidebar {
+            width: 240px;
+            height: 100vh;
+            position: fixed;
+            background: #0d1b2a;
+            color: white;
+            padding-top: 30px;
+        }
+
+        .sidebar h4 {
+            font-weight: 700;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 14px 25px;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover {
+            background: #1b263b;
+            color: white;
+        }
+
+        .content {
+            margin-left: 240px;
+            padding: 40px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+
+        .bank-card {
+            border-radius: 20px;
+            padding: 25px;
+            color: white;
+            background: linear-gradient(135deg, #1d3557, #457b9d);
+        }
+
+        .loan-card {
+            background: linear-gradient(135deg, #2a9d8f, #21867a);
+            color: white;
+            border-radius: 20px;
+            padding: 25px;
+        }
+
+        .credit-card {
+            background: linear-gradient(135deg, #7209b7, #560bad);
+            color: white;
+            border-radius: 20px;
+            padding: 25px;
+        }
+
+        .quick-btn {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: 0.3s;
+        }
+
+        .quick-btn:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="sidebar text-center">
+    <h4 class="mb-4">💳 OnlineBank</h4>
+
+    <a href="/">Dashboard</a>
+    <a href="/create">Create Account</a>
+    <a href="/accounts">Balance</a>
+    <a href="/deposit">Deposit</a>
+    <a href="/withdraw">Withdraw</a>
+    <a href="/transfer">Transfer</a>
+</div>
+
+<div class="content">
+
+    <h3 class="fw-bold mb-4">Welcome Back 👋</h3>
+
+
+    <h5 class="fw-bold mb-3">Loans & EMI</h5>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="loan-card">
+                <h6>Personal Loan</h6>
+                <h4>Apply up to ₹5,00,000</h4>
+                <p>Instant approval with low interest</p>
+                <a href="/personal-loan" class="btn btn-light btn-sm">Apply Now</a>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="loan-card">
+                <h6>Home Loan</h6>
+                <h4>Starting 8.5% Interest</h4>
+                <p>Flexible tenure up to 25 years</p>
+                <a href="/home-loan" class="btn btn-light btn-sm">Check Eligibility</a>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="fw-bold mb-3">Credit Cards</h5>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="credit-card">
+                <h6>Platinum Credit Card</h6>
+                <h4>Limit ₹2,00,000</h4>
+                <p>5% Cashback on online shopping</p>
+                <a href="/platinum-card" class="btn btn-light btn-sm">View Card</a>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="credit-card">
+                <h6>Travel Card</h6>
+                <h4>Airport Lounge Access</h4>
+                <p>Earn travel reward points</p>
+                <a href="/travel-card" class="btn btn-light btn-sm">Explore</a>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="fw-bold mb-3">Quick Services</h5>
+
+    <div class="row">
+        <div class="col-md-4">
+            <a href="/deposit" style="text-decoration:none;color:black;">
+                <div class="quick-btn">
+                    💰 Deposit Money
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="/withdraw" style="text-decoration:none;color:black;">
+                <div class="quick-btn">
+                    🏧 Withdraw Money
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="/transfer" style="text-decoration:none;color:black;">
+                <div class="quick-btn">
+                    🔄 Transfer Funds
+                </div>
+            </a>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
