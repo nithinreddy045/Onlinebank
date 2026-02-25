@@ -9,6 +9,8 @@ import com.nithin.onlinebank.model.Account;
 import com.nithin.onlinebank.service.BankService;
 import com.nithin.onlinebank.repository.AccountRepository;
 
+import jakarta.servlet.http.HttpSession;
+
 @Controller
 public class BankController {
 
@@ -18,83 +20,99 @@ public class BankController {
     @Autowired
     private AccountRepository accountRepository;
 
-    
-    @GetMapping("/")
-    public String dashboard(Model model) {
-
-    long totalAccounts = accountRepository.count();
-
-    double totalBalance = accountRepository.findAll()
-            .stream()
-            .mapToDouble(Account::getBalance)
-            .sum();
-
-    model.addAttribute("totalAccounts", totalAccounts);
-    model.addAttribute("totalBalance", totalBalance);
-    model.addAttribute("accounts", accountRepository.findAll());
-
-    return "dashboard";
+    private boolean notLoggedIn(HttpSession session) {
+        return session.getAttribute("loggedInUser") == null;
     }
 
-    
+
     @GetMapping("/create")
-    public String showCreateForm(Model model) {
+    public String showCreateForm(HttpSession session, Model model) {
+
+
         model.addAttribute("account", new Account());
         return "create-account";
     }
 
     @PostMapping("/create")
-public String createAccount(@ModelAttribute Account account, Model model) {
+    public String createAccount(@ModelAttribute Account account,
+                                Model model,
+                                HttpSession session) {
 
-    
-    if (!account.getAadhaarNumber().matches("\\d{12}")) {
-        model.addAttribute("error", "Aadhaar must be exactly 12 digits");
-        model.addAttribute("account", account);
+        // if (notLoggedIn(session)) return "redirect:/";
+
+        if (!account.getAadhaarNumber().matches("\\d{12}")) {
+            model.addAttribute("error", "Aadhaar must be exactly 12 digits");
+            model.addAttribute("account", account);
+            return "create-account";
+        }
+
+        if (!account.getPhoneNumber().matches("\\d{10}")) {
+            model.addAttribute("error", "Phone number must be exactly 10 digits");
+            model.addAttribute("account", account);
+            return "create-account";
+        }
+
+        if (account.getBalance() < 0) {
+            model.addAttribute("error", "Initial balance cannot be negative");
+            model.addAttribute("account", account);
+            return "create-account";
+        }
+
+        if (!account.getPin().matches("\\d{4}")) {
+            model.addAttribute("error", "PIN must be exactly 4 digits");
+            model.addAttribute("account", account);
+            return "create-account";
+        }
+
+        account.setAccountNo(generateAccountNumber());
+        account.setKYCVerified(true);
+
+        accountRepository.save(account);
+
+        model.addAttribute("success",
+                "Account Created Successfully! Account Number: " + account.getAccountNo());
+
+        model.addAttribute("account", new Account());
+
         return "create-account";
     }
 
-   
-    if (!account.getPhoneNumber().matches("\\d{10}")) {
-        model.addAttribute("error", "Phone number must be exactly 10 digits");
-        model.addAttribute("account", account);
-        return "create-account";
+
+    @GetMapping("/view-balance")
+    public String showViewBalancePage(HttpSession session) {
+
+        if (notLoggedIn(session)) return "redirect:/";
+
+        return "view-balance";
     }
 
-    
-    if (account.getBalance() < 0) {
-        model.addAttribute("error", "Initial balance cannot be negative");
-        model.addAttribute("account", account);
-        return "create-account";
+    @PostMapping("/view-balance")
+    public String checkBalance(@RequestParam Long accountNo,
+                               @RequestParam String pin,
+                               Model model,
+                               HttpSession session) {
+
+        if (notLoggedIn(session)) return "redirect:/";
+
+        Account account = accountRepository
+                .findByAccountNoAndPin(accountNo, pin);
+
+        if (account == null) {
+            model.addAttribute("error", "Incorrect Account Number or PIN");
+            return "view-balance";
+        }
+
+        model.addAttribute("balance", account.getBalance());
+        return "view-balance";
     }
 
-    
-    Long accNo = generateAccountNumber();
-    account.setAccountNo(accNo);
 
-    
-    account.setKYCVerified(true);
-
-    accountRepository.save(account);
-
-    model.addAttribute("success",
-            "Account Created Successfully! Account Number: " + accNo);
-
-    model.addAttribute("account", new Account());
-
-    return "create-account";
-}
-
-    
-    @GetMapping("/accounts")
-    public String viewAccounts(Model model) {
-        model.addAttribute("accounts", accountRepository.findAll());
-        return "accounts";
-    }
-
-    
     @GetMapping("/deposit")
-    public String showDepositPage(@RequestParam(required = false) Long accountNo,
+    public String showDepositPage(HttpSession session,
+                                  @RequestParam(required = false) Long accountNo,
                                   Model model) {
+
+        if (notLoggedIn(session)) return "redirect:/";
 
         model.addAttribute("accountNo", accountNo);
         return "deposit";
@@ -103,22 +121,29 @@ public String createAccount(@ModelAttribute Account account, Model model) {
     @PostMapping("/deposit")
     public String deposit(@RequestParam Long accountNo,
                           @RequestParam double amount,
-                          Model model) {
+                          Model model,
+                          HttpSession session) {
+
+        if (notLoggedIn(session)) return "redirect:/";
 
         try {
             accountService.deposit(accountNo, amount);
-            return "redirect:/accounts";
+            model.addAttribute("success", "Deposit successful!");
         } catch (RuntimeException e) {
             model.addAttribute("error", e.getMessage());
-            model.addAttribute("accountNo", accountNo);
-            return "deposit";
         }
+
+        model.addAttribute("accountNo", accountNo);
+        return "deposit";
     }
 
-   
+
     @GetMapping("/withdraw")
-    public String showWithdrawPage(@RequestParam(required = false) Long accountNo,
+    public String showWithdrawPage(HttpSession session,
+                                   @RequestParam(required = false) Long accountNo,
                                    Model model) {
+
+        if (notLoggedIn(session)) return "redirect:/";
 
         model.addAttribute("accountNo", accountNo);
         return "withdraw";
@@ -127,23 +152,28 @@ public String createAccount(@ModelAttribute Account account, Model model) {
     @PostMapping("/withdraw")
     public String withdraw(@RequestParam Long accountNo,
                            @RequestParam double amount,
-                           Model model) {
+                           Model model,
+                           HttpSession session) {
+
+        if (notLoggedIn(session)) return "redirect:/";
 
         try {
             accountService.withdraw(accountNo, amount);
-            model.addAttribute("success", "Withdrawal of ₹" + amount + " successful!");
-            model.addAttribute("accountNo", accountNo);
-            return "withdraw";
+            model.addAttribute("success", "Withdrawal successful!");
         } catch (RuntimeException e) {
             model.addAttribute("error", e.getMessage());
-            model.addAttribute("accountNo", accountNo);
-            return "withdraw";
         }
+
+        model.addAttribute("accountNo", accountNo);
+        return "withdraw";
     }
 
-   
+
     @GetMapping("/transfer")
-    public String showTransferPage() {
+    public String showTransferPage(HttpSession session) {
+
+        if (notLoggedIn(session)) return "redirect:/";
+
         return "transfer";
     }
 
@@ -151,97 +181,32 @@ public String createAccount(@ModelAttribute Account account, Model model) {
     public String transfer(@RequestParam Long fromAccount,
                            @RequestParam Long toAccount,
                            @RequestParam double amount,
-                           Model model) {
+                           Model model,
+                           HttpSession session) {
+
+        if (notLoggedIn(session)) return "redirect:/";
 
         try {
             accountService.transfer(fromAccount, toAccount, amount);
-            model.addAttribute("success",
-                    "Transfer of ₹" + amount + " from Account " + fromAccount
-                            + " to Account " + toAccount + " was successful!");
+            model.addAttribute("success", "Transfer successful!");
         } catch (RuntimeException e) {
             model.addAttribute("error", e.getMessage());
         }
 
-        model.addAttribute("fromAccount", fromAccount);
-        model.addAttribute("toAccount", toAccount);
         return "transfer";
     }
 
 
-    @GetMapping("/verify-kyc")
-    public String showKycPage(@RequestParam Long accountNo, Model model) {
-
-    Account account = accountRepository.findById(accountNo)
-            .orElseThrow(() -> new RuntimeException("Account not found"));
-
-    model.addAttribute("account", account);
-    return "verify-kyc";
-    }
-
-    @PostMapping("/verify-kyc")
-    public String verifyKyc(@RequestParam Long accountNo,
-                        @RequestParam String aadhaar,
-                        @RequestParam String phone,
-                        Model model) {
-
-    Account account = accountRepository.findById(accountNo)
-            .orElseThrow(() -> new RuntimeException("Account not found"));
-
-    if (!aadhaar.matches("\\d{12}")) {
-        model.addAttribute("error", "Aadhaar must be exactly 12 digits");
-        model.addAttribute("account", account);
-        return "verify-kyc";
-    }
-
-    if (!phone.matches("\\d{10}")) {
-        model.addAttribute("error", "Phone number must be exactly 10 digits");
-        model.addAttribute("account", account);
-        return "verify-kyc";
-    }
-
-    account.setAadhaarNumber(aadhaar);
-    account.setPhoneNumber(phone);
-    account.setKYCVerified(true);
-
-    accountRepository.save(account);
-
-    model.addAttribute("success", "KYC Verified Successfully!");
-    model.addAttribute("account", account);
-
-    return "verify-kyc";
-    }
     private Long generateAccountNumber() {
 
-    long min = 1000000000L;  
-    long max = 9999999999L;  
+        long min = 1000000000L;
+        long max = 9999999999L;
+        long number;
 
-    long number;
+        do {
+            number = min + (long)(Math.random() * (max - min));
+        } while (accountRepository.existsById(number));
 
-    do {
-        number = min + (long)(Math.random() * (max - min));
-    } while (accountRepository.existsById(number));
-
-    return number;
+        return number;
     }
-
-
-    @GetMapping("/personal-loan")
-public String personalLoan() {
-    return "personal-loan";
-}
-
-@GetMapping("/home-loan")
-public String homeLoan() {
-    return "home-loan";
-}
-
-@GetMapping("/platinum-card")
-public String platinumCard() {
-    return "platinum-card";
-}
-
-@GetMapping("/travel-card")
-public String travelCard() {
-    return "travel-card";
-}
 }

@@ -23,7 +23,6 @@ public class BankService {
             throw new RuntimeException("Initial balance cannot be negative");
         }
 
-        // Generate unique 10-digit account number
         Long generatedAccountNumber = generateUniqueAccountNumber();
         account.setAccountNo(generatedAccountNumber);
 

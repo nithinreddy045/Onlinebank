@@ -14,13 +14,13 @@ public class Account {
     private String aadhaarNumber;
     private String phoneNumber;
 
-    public Account() {}
+    private String username;
+    private String pin;
 
-    public Account(String holderName, double balance, boolean isKYCVerified) {
-        this.holderName = holderName;
-        this.balance = balance;
-        this.isKYCVerified = isKYCVerified;
-    }
+    public String getPin() { return pin; }
+    public void setPin(String pin) { this.pin = pin; }
+
+    public Account() {}
 
     public Long getAccountNo() { return accountNo; }
     public void setAccountNo(Long accountNo) { this.accountNo = accountNo; }
@@ -39,4 +39,7 @@ public class Account {
 
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 }

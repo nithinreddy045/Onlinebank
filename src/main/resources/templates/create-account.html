@@ -51,9 +51,9 @@
     <a class="navbar-brand text-white fw-bold" href="/">💳 OnlineBank</a>
     <div class="collapse navbar-collapse">
         <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link text-white" href="/">Home</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/dashboard">Home</a></li>
             <li class="nav-item"><a class="nav-link text-white fw-bold" href="/create">Create Account</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="/accounts">View Accounts</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/view-balance">View Accounts</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="/deposit">Deposit</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="/withdraw">Withdraw</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="/transfer">Transfer</a></li>
@@ -88,6 +88,15 @@
                required>
     </div>
 
+    <div class="mb-3">
+    <label class="form-label">4 Digit PIN</label>
+    <input type="password"
+           class="form-control"
+           name="pin"
+           maxlength="4"
+           pattern="\d{4}"
+           required>
+    </div>
     <hr>
 
     <h5 class="mb-3">🔐 KYC Verification</h5>
@@ -116,9 +125,17 @@
         <small class="text-muted">Must be exactly 10 digits</small>
     </div>
 
-    <button type="submit" class="btn btn-primary-custom w-100">
+    <div class="d-grid gap-2">
+
+    <button type="submit" class="btn btn-primary-custom">
         Create Account
     </button>
+
+    <a href="/" class="btn btn-warning text-center">
+        Sign In
+    </a>
+
+</div>
 
 </form>
                 </form>
