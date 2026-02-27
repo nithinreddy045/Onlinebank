@@ -16,11 +16,13 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
+    // ================= LOGIN PAGE =================
     @GetMapping("/")
     public String showLogin() {
         return "login";
     }
 
+    // ================= LOGIN PROCESS =================
     @PostMapping("/login")
     public String login(@RequestParam String username,
                         @RequestParam String password,
@@ -39,6 +41,7 @@ public class AuthController {
         return "redirect:/dashboard";
     }
 
+    // ================= DASHBOARD =================
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session) {
 
@@ -49,13 +52,33 @@ public class AuthController {
         return "dashboard";
     }
 
+    // ================= LOGOUT =================
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
         return "redirect:/";
     }
+
+    // ================= REGISTER PAGE =================
     @GetMapping("/register")
     public String registerPage() {
         return "register";
+    }
+
+    // ================= REGISTER PROCESS (IMPORTANT FIX) =================
+    @PostMapping("/register")
+    public String register(@RequestParam String username,
+                           @RequestParam String password,
+                           Model model) {
+
+        if (userRepository.findByUsername(username) != null) {
+            model.addAttribute("error", "Username already exists");
+            return "register";
+        }
+
+        User user = new User(username, password);
+        userRepository.save(user);
+
+        return "redirect:/";   // go to login after register
     }
 }

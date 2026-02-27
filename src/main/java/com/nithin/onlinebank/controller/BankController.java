@@ -24,21 +24,17 @@ public class BankController {
         return session.getAttribute("loggedInUser") == null;
     }
 
+    // ================= CREATE ACCOUNT =================
 
     @GetMapping("/create")
-    public String showCreateForm(HttpSession session, Model model) {
-
-
+    public String showCreateForm(Model model) {
         model.addAttribute("account", new Account());
         return "create-account";
     }
 
     @PostMapping("/create")
     public String createAccount(@ModelAttribute Account account,
-                                Model model,
-                                HttpSession session) {
-
-        // if (notLoggedIn(session)) return "redirect:/";
+                                Model model) {
 
         if (!account.getAadhaarNumber().matches("\\d{12}")) {
             model.addAttribute("error", "Aadhaar must be exactly 12 digits");
@@ -77,12 +73,11 @@ public class BankController {
         return "create-account";
     }
 
+    // ================= VIEW BALANCE =================
 
     @GetMapping("/view-balance")
     public String showViewBalancePage(HttpSession session) {
-
         if (notLoggedIn(session)) return "redirect:/";
-
         return "view-balance";
     }
 
@@ -94,8 +89,7 @@ public class BankController {
 
         if (notLoggedIn(session)) return "redirect:/";
 
-        Account account = accountRepository
-                .findByAccountNoAndPin(accountNo, pin);
+        Account account = accountRepository.findByAccountNoAndPin(accountNo, pin);
 
         if (account == null) {
             model.addAttribute("error", "Incorrect Account Number or PIN");
@@ -106,6 +100,7 @@ public class BankController {
         return "view-balance";
     }
 
+    // ================= DEPOSIT =================
 
     @GetMapping("/deposit")
     public String showDepositPage(HttpSession session,
@@ -137,6 +132,7 @@ public class BankController {
         return "deposit";
     }
 
+    // ================= WITHDRAW =================
 
     @GetMapping("/withdraw")
     public String showWithdrawPage(HttpSession session,
@@ -168,12 +164,11 @@ public class BankController {
         return "withdraw";
     }
 
+    // ================= TRANSFER =================
 
     @GetMapping("/transfer")
     public String showTransferPage(HttpSession session) {
-
         if (notLoggedIn(session)) return "redirect:/";
-
         return "transfer";
     }
 
@@ -196,9 +191,37 @@ public class BankController {
         return "transfer";
     }
 
+    // ================= LOANS =================
+
+    @GetMapping("/personal-loan")
+    public String personalLoanPage(HttpSession session) {
+        if (notLoggedIn(session)) return "redirect:/";
+        return "personal-loan";
+    }
+
+    @GetMapping("/home-loan")
+    public String homeLoanPage(HttpSession session) {
+        if (notLoggedIn(session)) return "redirect:/";
+        return "home-loan";
+    }
+
+    // ================= CREDIT CARDS =================
+
+    @GetMapping("/platinum-card")
+    public String platinumCardPage(HttpSession session) {
+        if (notLoggedIn(session)) return "redirect:/";
+        return "platinum-card";
+    }
+
+    @GetMapping("/travel-card")
+    public String travelCardPage(HttpSession session) {
+        if (notLoggedIn(session)) return "redirect:/";
+        return "travel-card";
+    }
+
+    // ================= ACCOUNT NUMBER GENERATOR =================
 
     private Long generateAccountNumber() {
-
         long min = 1000000000L;
         long max = 9999999999L;
         long number;
