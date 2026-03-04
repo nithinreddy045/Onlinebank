@@ -6,7 +6,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import com.nithin.onlinebank.model.Account;
-import com.nithin.onlinebank.service.BankService;
 import com.nithin.onlinebank.repository.AccountRepository;
 
 import jakarta.servlet.http.HttpSession;
@@ -15,17 +14,52 @@ import jakarta.servlet.http.HttpSession;
 public class BankController {
 
     @Autowired
-    private BankService accountService;
-
-    @Autowired
     private AccountRepository accountRepository;
 
+    // ================= COMMON LOGIN CHECK METHOD =================
     private boolean notLoggedIn(HttpSession session) {
-        return session.getAttribute("loggedInUser") == null;
+        return session.getAttribute("account") == null;
+    }
+
+    // ================= LOGIN PAGE =================
+    @GetMapping("/")
+    public String loginPage(HttpSession session) {
+        return "login";
+    }
+
+    // ================= LOGIN PROCESS =================
+    @PostMapping("/login")
+    public String login(@RequestParam Long accountNo,
+                        @RequestParam String pin,
+                        Model model,
+                        HttpSession session) {
+
+        Account account = accountRepository.findByAccountNoAndPin(accountNo, pin);
+
+        if (account == null) {
+            model.addAttribute("error", "Invalid Account Number or PIN");
+            return "login";
+        }
+
+        session.setAttribute("account", account);
+        return "redirect:/dashboard";
+    }
+
+    // ================= LOGOUT =================
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/";
+    }
+
+    // ================= DASHBOARD =================
+    @GetMapping("/dashboard")
+    public String dashboard(HttpSession session) {
+        if (notLoggedIn(session)) return "redirect:/";
+        return "dashboard";
     }
 
     // ================= CREATE ACCOUNT =================
-
     @GetMapping("/create")
     public String showCreateForm(Model model) {
         model.addAttribute("account", new Account());
@@ -35,24 +69,6 @@ public class BankController {
     @PostMapping("/create")
     public String createAccount(@ModelAttribute Account account,
                                 Model model) {
-
-        if (!account.getAadhaarNumber().matches("\\d{12}")) {
-            model.addAttribute("error", "Aadhaar must be exactly 12 digits");
-            model.addAttribute("account", account);
-            return "create-account";
-        }
-
-        if (!account.getPhoneNumber().matches("\\d{10}")) {
-            model.addAttribute("error", "Phone number must be exactly 10 digits");
-            model.addAttribute("account", account);
-            return "create-account";
-        }
-
-        if (account.getBalance() < 0) {
-            model.addAttribute("error", "Initial balance cannot be negative");
-            model.addAttribute("account", account);
-            return "create-account";
-        }
 
         if (!account.getPin().matches("\\d{4}")) {
             model.addAttribute("error", "PIN must be exactly 4 digits");
@@ -66,7 +82,9 @@ public class BankController {
         accountRepository.save(account);
 
         model.addAttribute("success",
-                "Account Created Successfully! Account Number: " + account.getAccountNo());
+                "Account Created Successfully! Your Account Number is: "
+                        + account.getAccountNo()
+                        + ". Please login to continue.");
 
         model.addAttribute("account", new Account());
 
@@ -74,25 +92,23 @@ public class BankController {
     }
 
     // ================= VIEW BALANCE =================
-
     @GetMapping("/view-balance")
-    public String showViewBalancePage(HttpSession session) {
+    public String viewBalancePage(HttpSession session) {
         if (notLoggedIn(session)) return "redirect:/";
         return "view-balance";
     }
 
     @PostMapping("/view-balance")
-    public String checkBalance(@RequestParam Long accountNo,
-                               @RequestParam String pin,
-                               Model model,
-                               HttpSession session) {
+    public String checkBalance(@RequestParam String pin,
+                               HttpSession session,
+                               Model model) {
 
         if (notLoggedIn(session)) return "redirect:/";
 
-        Account account = accountRepository.findByAccountNoAndPin(accountNo, pin);
+        Account account = (Account) session.getAttribute("account");
 
-        if (account == null) {
-            model.addAttribute("error", "Incorrect Account Number or PIN");
+        if (!account.getPin().equals(pin)) {
+            model.addAttribute("error", "Incorrect PIN");
             return "view-balance";
         }
 
@@ -101,71 +117,71 @@ public class BankController {
     }
 
     // ================= DEPOSIT =================
-
     @GetMapping("/deposit")
-    public String showDepositPage(HttpSession session,
-                                  @RequestParam(required = false) Long accountNo,
-                                  Model model) {
-
+    public String showDepositPage(HttpSession session) {
         if (notLoggedIn(session)) return "redirect:/";
-
-        model.addAttribute("accountNo", accountNo);
         return "deposit";
     }
 
     @PostMapping("/deposit")
-    public String deposit(@RequestParam Long accountNo,
-                          @RequestParam double amount,
-                          Model model,
-                          HttpSession session) {
+    public String deposit(@RequestParam double amount,
+                          @RequestParam String pin,
+                          HttpSession session,
+                          Model model) {
 
         if (notLoggedIn(session)) return "redirect:/";
 
-        try {
-            accountService.deposit(accountNo, amount);
-            model.addAttribute("success", "Deposit successful!");
-        } catch (RuntimeException e) {
-            model.addAttribute("error", e.getMessage());
+        Account account = (Account) session.getAttribute("account");
+
+        if (!account.getPin().equals(pin)) {
+            model.addAttribute("error", "Incorrect PIN");
+            return "deposit";
         }
 
-        model.addAttribute("accountNo", accountNo);
+        account.setBalance(account.getBalance() + amount);
+        accountRepository.save(account);
+        session.setAttribute("account", account);
+
+        model.addAttribute("success", "Deposit Successful!");
         return "deposit";
     }
 
     // ================= WITHDRAW =================
-
     @GetMapping("/withdraw")
-    public String showWithdrawPage(HttpSession session,
-                                   @RequestParam(required = false) Long accountNo,
-                                   Model model) {
-
+    public String showWithdrawPage(HttpSession session) {
         if (notLoggedIn(session)) return "redirect:/";
-
-        model.addAttribute("accountNo", accountNo);
         return "withdraw";
     }
 
     @PostMapping("/withdraw")
-    public String withdraw(@RequestParam Long accountNo,
-                           @RequestParam double amount,
-                           Model model,
-                           HttpSession session) {
+    public String withdraw(@RequestParam double amount,
+                           @RequestParam String pin,
+                           HttpSession session,
+                           Model model) {
 
         if (notLoggedIn(session)) return "redirect:/";
 
-        try {
-            accountService.withdraw(accountNo, amount);
-            model.addAttribute("success", "Withdrawal successful!");
-        } catch (RuntimeException e) {
-            model.addAttribute("error", e.getMessage());
+        Account account = (Account) session.getAttribute("account");
+
+        if (!account.getPin().equals(pin)) {
+            model.addAttribute("error", "Incorrect PIN");
+            return "withdraw";
         }
 
-        model.addAttribute("accountNo", accountNo);
+        if (account.getBalance() < amount) {
+            model.addAttribute("error", "Insufficient Balance");
+            return "withdraw";
+        }
+
+        account.setBalance(account.getBalance() - amount);
+        accountRepository.save(account);
+        session.setAttribute("account", account);
+
+        model.addAttribute("success", "Withdrawal Successful!");
         return "withdraw";
     }
 
     // ================= TRANSFER =================
-
     @GetMapping("/transfer")
     public String showTransferPage(HttpSession session) {
         if (notLoggedIn(session)) return "redirect:/";
@@ -173,54 +189,46 @@ public class BankController {
     }
 
     @PostMapping("/transfer")
-    public String transfer(@RequestParam Long fromAccount,
-                           @RequestParam Long toAccount,
+    public String transfer(@RequestParam Long toAccount,
                            @RequestParam double amount,
-                           Model model,
-                           HttpSession session) {
+                           @RequestParam String pin,
+                           HttpSession session,
+                           Model model) {
 
         if (notLoggedIn(session)) return "redirect:/";
 
-        try {
-            accountService.transfer(fromAccount, toAccount, amount);
-            model.addAttribute("success", "Transfer successful!");
-        } catch (RuntimeException e) {
-            model.addAttribute("error", e.getMessage());
+        Account fromAccount = (Account) session.getAttribute("account");
+
+        if (!fromAccount.getPin().equals(pin)) {
+            model.addAttribute("error", "Incorrect PIN");
+            return "transfer";
         }
 
+        Account receiver = accountRepository.findById(toAccount).orElse(null);
+
+        if (receiver == null) {
+            model.addAttribute("error", "Receiver not found");
+            return "transfer";
+        }
+
+        if (fromAccount.getBalance() < amount) {
+            model.addAttribute("error", "Insufficient Balance");
+            return "transfer";
+        }
+
+        fromAccount.setBalance(fromAccount.getBalance() - amount);
+        receiver.setBalance(receiver.getBalance() + amount);
+
+        accountRepository.save(fromAccount);
+        accountRepository.save(receiver);
+
+        session.setAttribute("account", fromAccount);
+
+        model.addAttribute("success", "Transfer Successful!");
         return "transfer";
     }
 
-    // ================= LOANS =================
-
-    @GetMapping("/personal-loan")
-    public String personalLoanPage(HttpSession session) {
-        if (notLoggedIn(session)) return "redirect:/";
-        return "personal-loan";
-    }
-
-    @GetMapping("/home-loan")
-    public String homeLoanPage(HttpSession session) {
-        if (notLoggedIn(session)) return "redirect:/";
-        return "home-loan";
-    }
-
-    // ================= CREDIT CARDS =================
-
-    @GetMapping("/platinum-card")
-    public String platinumCardPage(HttpSession session) {
-        if (notLoggedIn(session)) return "redirect:/";
-        return "platinum-card";
-    }
-
-    @GetMapping("/travel-card")
-    public String travelCardPage(HttpSession session) {
-        if (notLoggedIn(session)) return "redirect:/";
-        return "travel-card";
-    }
-
     // ================= ACCOUNT NUMBER GENERATOR =================
-
     private Long generateAccountNumber() {
         long min = 1000000000L;
         long max = 9999999999L;

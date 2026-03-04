@@ -1,9 +1,9 @@
-package com.nithin.onlinebank.repository;
+// package com.nithin.onlinebank.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import com.nithin.onlinebank.model.User;
+// import org.springframework.data.jpa.repository.JpaRepository;
+// import com.nithin.onlinebank.model.User;
 
-public interface UserRepository extends JpaRepository<User, Long> {
+// public interface UserRepository extends JpaRepository<User, Long> {
 
-    User findByUsername(String username);
-}
+//     User findByUsername(String username);
+// }

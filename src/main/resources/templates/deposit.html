@@ -56,7 +56,6 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><a class="nav-link text-white" href="/dashboard">Home</a></li>
-                <li class="nav-item"><a class="nav-link text-white" href="/create">Create Account</a></li>
                 <li class="nav-item"><a class="nav-link text-white" href="/view-balance">View Balance</a></li>
                 <li class="nav-item"><a class="nav-link text-white fw-bold" href="/deposit">Deposit</a></li>
                 <li class="nav-item"><a class="nav-link text-white" href="/withdraw">Withdraw</a></li>
@@ -79,16 +78,21 @@
                     <form method="post" action="/deposit">
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Account Number</label>
-                            <input type="number" name="accountNo" class="form-control" th:value="${accountNo}"
-                                placeholder="Enter account number" required>
-                        </div>
+    <label class="form-label fw-semibold">Amount (₹)</label>
+    <input type="number" name="amount"
+           class="form-control"
+           min="1" step="0.01" required>
+</div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">Amount (₹)</label>
-                            <input type="number" name="amount" class="form-control" placeholder="Enter deposit amount"
-                                min="1" step="0.01" required>
-                        </div>
+<div class="mb-4">
+    <label class="form-label fw-semibold">Enter PIN</label>
+    <input type="password"
+           name="pin"
+           class="form-control"
+           maxlength="4"
+           pattern="\d{4}"
+           required>
+</div>
 
                         <button type="submit" class="btn btn-deposit w-100">
                             Deposit
