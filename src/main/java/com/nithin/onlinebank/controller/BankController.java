@@ -16,18 +16,15 @@ public class BankController {
     @Autowired
     private AccountRepository accountRepository;
 
-    // ================= COMMON LOGIN CHECK METHOD =================
     private boolean notLoggedIn(HttpSession session) {
         return session.getAttribute("account") == null;
     }
 
-    // ================= LOGIN PAGE =================
     @GetMapping("/")
     public String loginPage(HttpSession session) {
         return "login";
     }
 
-    // ================= LOGIN PROCESS =================
     @PostMapping("/login")
     public String login(@RequestParam Long accountNo,
                         @RequestParam String pin,
@@ -45,21 +42,18 @@ public class BankController {
         return "redirect:/dashboard";
     }
 
-    // ================= LOGOUT =================
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
         return "redirect:/";
     }
 
-    // ================= DASHBOARD =================
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session) {
         if (notLoggedIn(session)) return "redirect:/";
         return "dashboard";
     }
 
-    // ================= CREATE ACCOUNT =================
     @GetMapping("/create")
     public String showCreateForm(Model model) {
         model.addAttribute("account", new Account());
@@ -91,7 +85,6 @@ public class BankController {
         return "create-account";
     }
 
-    // ================= VIEW BALANCE =================
     @GetMapping("/view-balance")
     public String viewBalancePage(HttpSession session) {
         if (notLoggedIn(session)) return "redirect:/";
@@ -116,7 +109,6 @@ public class BankController {
         return "view-balance";
     }
 
-    // ================= DEPOSIT =================
     @GetMapping("/deposit")
     public String showDepositPage(HttpSession session) {
         if (notLoggedIn(session)) return "redirect:/";
@@ -146,7 +138,6 @@ public class BankController {
         return "deposit";
     }
 
-    // ================= WITHDRAW =================
     @GetMapping("/withdraw")
     public String showWithdrawPage(HttpSession session) {
         if (notLoggedIn(session)) return "redirect:/";
@@ -181,7 +172,6 @@ public class BankController {
         return "withdraw";
     }
 
-    // ================= TRANSFER =================
     @GetMapping("/transfer")
     public String showTransferPage(HttpSession session) {
         if (notLoggedIn(session)) return "redirect:/";
@@ -228,7 +218,6 @@ public class BankController {
         return "transfer";
     }
 
-    // ================= ACCOUNT NUMBER GENERATOR =================
     private Long generateAccountNumber() {
         long min = 1000000000L;
         long max = 9999999999L;
@@ -240,4 +229,28 @@ public class BankController {
 
         return number;
     }
+
+@GetMapping("/personal-loan")
+public String personalLoan(HttpSession session) {
+    if (notLoggedIn(session)) return "redirect:/";
+    return "personal-loan";
+}
+
+@GetMapping("/home-loan")
+public String homeLoan(HttpSession session) {
+    if (notLoggedIn(session)) return "redirect:/";
+    return "home-loan";
+}
+
+@GetMapping("/platinum-card")
+public String carLoan(HttpSession session) {
+    if (notLoggedIn(session)) return "redirect:/";
+    return "platinum-card";
+}
+
+@GetMapping("/travel-card")
+public String educationLoan(HttpSession session) {
+    if (notLoggedIn(session)) return "redirect:/";
+    return "travel-card";
+}
 }
